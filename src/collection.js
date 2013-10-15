@@ -78,7 +78,6 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
         renderElements: function (options) {
             var self = this,
                 collection = this.collection;
-
             collection.each(function (model) {
                 var $el = self.$el.find("> [name='" + model.id + "']");
                 if ($el.length == 0) {
@@ -87,7 +86,11 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
                     self.$el.prepend($el);
                 }
                 $el.html(self.template(model.attributes));
+
+
             });
+            self.$el.change();
+
         },
 
         /**
