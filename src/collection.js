@@ -89,6 +89,7 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
 
 
             });
+
             self.$el.change();
 
         },
