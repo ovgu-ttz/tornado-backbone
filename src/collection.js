@@ -77,7 +77,8 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
 
         renderElements: function (options) {
             var self = this,
-                collection = this.collection;
+            collection = this.collection;
+
             collection.each(function (model) {
                 var $el = self.$el.find("> [name='" + model.id + "']");
                 if ($el.length == 0) {
