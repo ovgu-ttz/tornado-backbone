@@ -12,6 +12,10 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
 
     Tornado.BackboneCollection = Backbone.View.extend({
 
+        events: {
+            'click .btn-page': 'navigate'
+        },
+
         initialize: function () {
 
             // Set collection
@@ -36,6 +40,29 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
 
             // And add the css
             this.$el.addClass("tb-collection");
+
+            // Bind all
+            _.bindAll(this, 'navigate');
+        },
+
+        navigate: function (event) {
+            var $target = $(event.currentTarget),
+                self = this,
+                next = parseInt($target.text());
+
+            if (!isNaN(next)) {
+                this.collection.fetch({data: {page: next}});
+            } else if ($target.is(".btn-step-forward")) {
+                this.collection.fetch({data: {page: this.collection.page + 1}});
+            } else if ($target.is(".btn-step-backward")) {
+                this.collection.fetch({data: {page: this.collection.page - 1}});
+            } else if ($target.is(".btn-fast-forward")) {
+                this.collection.fetch({data: {page: this.collection.total_pages}});
+            } else if ($target.is(".btn-fast-backward")) {
+                this.collection.fetch({data: {page: 0}});
+            } else {
+                throw "Unexpected navigation target";
+            }
         },
 
         handleEvent: function (event) {
@@ -45,16 +72,36 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
                 this.$el.attr("data-tb-load", arguments[1]);
             }
 
-            if ((event == "hide" || event == "show") && arguments[1]) {
+            else if ((event == "hide" || event == "show") && arguments[1]) {
                 var model = arguments[1];
                 var $el = self.$el.find("> [name='" + model.id + "']");
                 $el[event]();
             }
 
-            if (event == "reset") {
+            else if (event == "reset") {
                 this.$el.empty();
                 this.render({reset: true});
                 this.$el.trigger('tb.reset', [this.collection]);
+            }
+
+            else if (event == "add") { /* 'add' model collection view */
+                this.addElement(arguments[1]);
+                this.$el.trigger('tb.add', [arguments[2], arguments[1]]);
+            }
+
+            else if (event == "remove") { /* 'remove' model collection view */
+                this.removeElement(arguments[1]);
+                this.$el.trigger('tb.remove', [arguments[2], arguments[1]]);
+            }
+
+            else if (event == "sync") { /* 'sync' model collection view */
+                this.renderFooter();
+                this.$el.trigger('tb.sync', [arguments[2], arguments[1]]);
+            }
+
+            else {
+                console.log(event);
+                console.log(arguments);
             }
         },
 
@@ -88,20 +135,40 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
 
         renderElements: function (options) {
             var self = this,
-            collection = this.collection;
+                collection = this.collection;
 
             collection.each(function (model) {
-                var $el = self.$el.find("> [name='" + model.id + "']");
-                if ($el.length == 0) {
-                    $el = $("<div></div>");
-                    $el.attr("name", model.id);
-                    self.$el.append($el);
-                }
-                $el.html(self.template(model.attributes));
+                self.addElement(model);
             });
+        },
 
-            self.$el.change();
+        /**
+         * add a single element
+         *
+         * @param model
+         */
+        addElement: function (model) {
+            var self = this;
 
+            var $el = self.$el.find("> [name='" + model.id + "']");
+            if ($el.length == 0) {
+                $el = $("<div></div>");
+                $el.attr("name", model.id);
+                self.$el.append($el);
+            }
+            $el.html(self.template(model.attributes));
+        },
+
+        /**
+         * del a single element
+         *
+         * @param model
+         */
+        removeElement: function (model) {
+            var self = this;
+
+            var $el = self.$el.find("> [name='" + model.id + "']");
+            $el.remove();
         },
 
         /**
@@ -120,12 +187,7 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
                 total_pages: collection.total_pages || 0
             };
 
-            var $footer = self.$el.find("footer");
-            if ($footer.length) {
-                $footer.replaceWith(self.constructor.footerTemplate(info));
-            } else {
-                $footer = self.$el.append(self.constructor.footerTemplate(info));
-            }
+            var $footer = $(self.constructor.footerTemplate(info));
 
             if (info.page < 2) {
                 $footer.find(".btn-fast-backward").addClass("disabled");
@@ -140,6 +202,9 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
             } else if (info.page > info.total_pages) {
                 $footer.find(".btn-fast-forward").addClass("disabled");
             }
+
+            self.$el.find("footer").remove();
+            self.$el.append($footer);
         }
 
     }, {
