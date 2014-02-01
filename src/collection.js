@@ -36,13 +36,15 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
             this.$el.empty();
 
             // Listen to model events
-            this.listenTo(this.collection, 'all', this.handleEvent);
+            this.listenTo(this.collection, 'add', this.addElement);
+            this.listenTo(this.collection, 'remove', this.removeElement);
+            this.listenTo(this.collection, 'hide', this.hideElement);
+            this.listenTo(this.collection, 'show', this.showElement);
+            this.listenTo(this.collection, 'sync', this.renderFooter);
+            this.listenTo(this.collection, 'reset', this.render);
 
             // And add the css
             this.$el.addClass("tb-collection");
-
-            // Bind all
-            _.bindAll(this, 'navigate');
         },
 
         navigate: function (event) {
@@ -62,46 +64,6 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
                 this.collection.fetch({data: {page: 0}});
             } else {
                 throw "Unexpected navigation target";
-            }
-        },
-
-        handleEvent: function (event) {
-            var self = this;
-
-            if (event == "tb.load") {
-                this.$el.attr("data-tb-load", arguments[1]);
-            }
-
-            else if ((event == "hide" || event == "show") && arguments[1]) {
-                var model = arguments[1];
-                var $el = self.$el.find("> [name='" + model.id + "']");
-                $el[event]();
-            }
-
-            else if (event == "reset") {
-                this.$el.empty();
-                this.render({reset: true});
-                this.$el.trigger('tb.reset', [this.collection]);
-            }
-
-            else if (event == "add") { /* 'add' model collection view */
-                this.addElement(arguments[1]);
-                this.$el.trigger('tb.add', [arguments[2], arguments[1]]);
-            }
-
-            else if (event == "remove") { /* 'remove' model collection view */
-                this.removeElement(arguments[1]);
-                this.$el.trigger('tb.remove', [arguments[2], arguments[1]]);
-            }
-
-            else if (event == "sync") { /* 'sync' model collection view */
-                this.renderFooter();
-                this.$el.trigger('tb.sync', [arguments[2], arguments[1]]);
-            }
-
-            else {
-                console.log(event);
-                console.log(arguments);
             }
         },
 
@@ -157,6 +119,30 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
                 self.$el.append($el);
             }
             $el.html(self.template(model.attributes));
+        },
+
+        /**
+         * show a single element
+         *
+         * @param model
+         */
+        showElement: function (model) {
+            var self = this;
+
+            var $el = self.$el.find("> [name='" + model.id + "']");
+            $el.show();
+        },
+
+        /**
+         * hide a single element
+         *
+         * @param model
+         */
+        hideElement: function (model) {
+            var self = this;
+
+            var $el = self.$el.find("> [name='" + model.id + "']");
+            $el.hide();
         },
 
         /**
@@ -251,7 +237,7 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
                 if (!options["delay"]) {
                     $this.data('tb.collection').render();
                 } else {
-                    $this.data('tb.collection').handleEvent("tb.load", "delay");
+                    $this.data('tb.collection').trigger("page:delay");
                 }
             }
             if (typeof option == 'string') {

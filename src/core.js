@@ -208,7 +208,7 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
                 options.data["page"] = options.reset || !collection.page ? undefined : collection.page + 1;
             }
 
-            this.trigger("tb.load", "fetch");
+            this.trigger("page:fetch");
 
             return Backbone.Collection.prototype.fetch.call(collection, options);
         },
@@ -218,8 +218,7 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
         parse: function (data) {
             var objects = data && data.objects;
             if (!objects) {
-                this.trigger("tb.pagination", "empty");
-                this.trigger("tb.load", "complete");
+                this.trigger("page:complete");
 
                 this.num_results = 0;
                 this.page = 0;
@@ -233,12 +232,9 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
             this.total_pages = data.total_pages || 0;
 
             if (this.num_results < this.models.length + objects.length) {
-                this.trigger("tb.pagination", "load");
-            } else {
-                this.trigger("tb.pagination", "complete");
+                this.trigger("page:showing", this.page);
             }
-
-            this.trigger("tb.load", "complete");
+            this.trigger("page:complete");
 
             return objects;
         }
