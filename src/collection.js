@@ -36,8 +36,6 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
             this.$el.empty();
 
             // Listen to model events
-            this.listenTo(this.collection, 'all', this.log);
-
             this.listenTo(this.collection, 'add', this.addElement);
             this.listenTo(this.collection, 'remove', this.removeElement);
             this.listenTo(this.collection, 'hide', this.hideElement);
@@ -47,10 +45,6 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
 
             // And add the css
             this.$el.addClass("tb-collection");
-        },
-
-        log: function () {
-            console.log(arguments)
         },
 
         navigate: function (event) {
