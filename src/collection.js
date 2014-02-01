@@ -52,6 +52,9 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
                 self = this,
                 next = parseInt($target.text());
 
+            $target.closest('footer').find(".btn-page-active").removeClass('btn-page-active');
+            $target.addClass('btn-page-active').addClass('btn-page-loading');
+
             if (!isNaN(next)) {
                 this.collection.fetch({data: {page: next}});
             } else if ($target.is(".btn-step-forward")) {
