@@ -204,7 +204,9 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
             if (this.page_length) {
                 options.data["results_per_page"] = this.page_length;
             }
-            options.data["page"] = options.reset || !collection.page ? undefined : collection.page + 1;
+            if (!options.data["page"]) {
+                options.data["page"] = options.reset || !collection.page ? undefined : collection.page + 1;
+            }
 
             this.trigger("tb.load", "fetch");
 
