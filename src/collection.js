@@ -177,24 +177,27 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
                 total_pages: collection.total_pages || 0
             };
 
-            var $footer = $(self.constructor.footerTemplate(info));
-
-            if (info.page < 2) {
-                $footer.find(".btn-fast-backward").addClass("disabled");
-                $footer.find(".btn-step-backward").addClass("disabled");
-            } else if (info.page < 3) {
-                $footer.find(".btn-fast-backward").addClass("disabled");
-            }
-
-            if (info.page >= info.total_pages) {
-                $footer.find(".btn-fast-forward").addClass("disabled");
-                $footer.find(".btn-step-forward").addClass("disabled");
-            } else if (info.page > info.total_pages) {
-                $footer.find(".btn-fast-forward").addClass("disabled");
-            }
-
             self.$el.find("footer").remove();
-            self.$el.append($footer);
+
+            if (info.total_pages > 1 || info.page != 1 || collection.show_footer == 'always') {
+                var $footer = $(self.constructor.footerTemplate(info));
+
+                if (info.page < 2) {
+                    $footer.find(".btn-fast-backward").addClass("disabled");
+                    $footer.find(".btn-step-backward").addClass("disabled");
+                } else if (info.page < 3) {
+                    $footer.find(".btn-fast-backward").addClass("disabled");
+                }
+
+                if (info.page >= info.total_pages) {
+                    $footer.find(".btn-fast-forward").addClass("disabled");
+                    $footer.find(".btn-step-forward").addClass("disabled");
+                } else if (info.page > info.total_pages) {
+                    $footer.find(".btn-fast-forward").addClass("disabled");
+                }
+
+                self.$el.append($footer);
+            }
         }
 
     }, {
