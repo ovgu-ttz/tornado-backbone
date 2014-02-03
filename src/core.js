@@ -103,6 +103,9 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
                 if (this.schema[attribute].type == "DateTime") {
                     return true;
                 }
+                if (this.schema[attribute].type == "Date") {
+                    return true;
+                }
                 if (this.schema[attribute].type == "Text" && this.schema[attribute].dataType == "datetime") {
                     return true;
                 }
