@@ -6,9 +6,8 @@
  * Core Lib
  */
 
-require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
-    var self = this.Tornado || {};
-    var Tornado = this.Tornado = self;
+define("tornado", ["jquery", "underscore", "backbone"],function ($, _, Backbone) {
+    var Tornado = {};
 
     /**
      * Operator defined by restless
@@ -379,4 +378,4 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
     });
 
     return Tornado;
-}).call(window);
+});

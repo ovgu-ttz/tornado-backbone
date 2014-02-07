@@ -193,11 +193,12 @@ class BaseHandler(RequestHandler):
             self.write({cwargs["model"]: mwargs, '%sCollection' % cwargs["name"]: cwargs})
         else:
             self.set_header("Content-Type", "application/javascript; charset=UTF-8")
-            self.write('var %s = %s.extend(%s);\n' % (cwargs["model"], self.model_base, json_encode(mwargs)))
-            self.write(
-                'var %sCollection = %s.extend(%s);\n' % (cwargs["name"], self.collection_base, json_encode(cwargs)))
+            self.write('define([%r], function (Tornado) {\n' % 'tornado')
+            self.write('%s = %s.extend(%s);\n' % (cwargs["model"], self.model_base, json_encode(mwargs)))
+            self.write('%sCollection = %s.extend(%s);\n' % (cwargs["name"], self.collection_base, json_encode(cwargs)))
             self.write('%sCollection.prototype.model = %s;\n' % (cwargs["name"], cwargs["model"]))
-            self.write('%s = new %sCollection();\n' % (self.table_name, cwargs["name"]))
+            self.write('return new %sCollection();\n' % (cwargs["name"]))
+            self.write('});\n')
 
 
 

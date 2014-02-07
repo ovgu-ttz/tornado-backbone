@@ -6,10 +6,7 @@
  * Add filtered collection in html
  */
 
-require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
-    var self = this.Tornado || {};
-    var Tornado = this.Tornado = self;
-
+define("tornado/collection", ["jquery", "underscore", "backbone", "tornado"], function ($, _, Backbone, Tornado) {
     Tornado.BackboneCollection = Backbone.View.extend({
 
         events: {
@@ -21,7 +18,11 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
             // Set collection
             if (this.options.collection) {
                 if (_.isString(this.options.collection)) {
-                    this.collection = this.options.collection = new window[this.options.collection]();
+                    var constructor = window[this.options.collection];
+                    if (!constructor) {
+                        throw "Could not find constructor: " + this.options.collection;
+                    }
+                    this.collection = this.options.collection = new constructor();
                 } else {
                     this.collection = this.options.collection;
                 }
@@ -49,7 +50,6 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
 
         navigate: function (event) {
             var $target = $(event.currentTarget),
-                self = this,
                 next = parseInt($target.text());
 
             $target.closest('footer').find(".btn-page-active").removeClass('btn-page-active');
@@ -99,7 +99,10 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
             return self;
         },
 
-        renderElements: function (options) {
+        /**
+         * render all elements
+         */
+        renderElements: function (/* options */) {
             var self = this,
                 collection = this.collection;
 
@@ -165,9 +168,8 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
          * Renders the pagination layer
          *
          * Inspired by https://gist.github.com/io41/838460
-         * @param options
          */
-        renderFooter: function (options) {
+        renderFooter: function (/* options */) {
             var self = this,
                 collection = this.collection;
 
@@ -254,18 +256,25 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
     };
     $.fn.tbcollection.Constructor = Tornado.BackboneCollection;
 
-    // Facile elements with backbone-forms
-    $('[data-collection][data-require]').each(function () {
-        var $view = $(this);
+    return Tornado;
+});
 
-        require($(this).data('require').split(" "), function () {
-            $view.tbcollection($view.data())
+// Facile elements with tornado-backbone-collection
+$( document ).ready(function() {
+    $('[data-collection][data-require]').each(function () {
+        var $collection = $(this);
+
+        require(["tornado/collection"], function () {
+            require($collection.data('require').split(" "), function () {
+                $collection.tbcollection($collection.data());
+            });
         });
     });
     $('[data-collection]:not([data-require])').each(function () {
-        var $view = $(this);
-        $view.tbcollection($view.data());
-    });
+        var $collection = $(this);
 
-    return Tornado;
-}).call(window);
+        require(["tornado/form"], function () {
+            $collection.tbcollection($collection.data());
+        });
+    });
+});

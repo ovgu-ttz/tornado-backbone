@@ -6,10 +6,7 @@
  * Extension to backbone-forms
  */
 
-require(["jquery", "underscore", "backbone", "backbone-forms"],function ($, _, Backbone) {
-    var self = this.Tornado || {};
-    var Tornado = this.Tornado = self;
-
+define("tornado/form", ["jquery", "underscore", "backbone", "tornado", "backbone-forms"], function ($, _, Backbone, Tornado) {
     Tornado.BackboneForm = Backbone.View.extend({
 
         initialize: function () {
@@ -17,7 +14,11 @@ require(["jquery", "underscore", "backbone", "backbone-forms"],function ($, _, B
             // Set Model
             if (this.options.model) {
                 if (_.isString(this.options.model)) {
-                    this.model = this.options.model = new window[this.options.model]();
+                    var constructor = window[this.options.model];
+                    if (!constructor) {
+                        throw "Could not find constructor: " + this.options.model;
+                    }
+                    this.model = this.options.model = new constructor();
                 } else {
                     this.model = this.options.model;
                 }
@@ -65,11 +66,11 @@ require(["jquery", "underscore", "backbone", "backbone-forms"],function ($, _, B
                 _.each(keys, function (key) {
                     var field = fields[key];
 
-                    var $el, el = field.editor.render().el;
+                    var el = field.editor.render().el;
                     if ($.webshims) {
-                        $el = $container.appendPolyfill(el);
+                        $container.appendPolyfill(el);
                     } else {
-                        $el = $container.append(el);
+                        $container.append(el);
                     }
                 });
 
@@ -102,11 +103,11 @@ require(["jquery", "underscore", "backbone", "backbone-forms"],function ($, _, B
                     field.schema = field.schema || {};
                     field.schema = _.extend(field.schema, $container.data("schema"));
 
-                    var $el, el = field.render().el;
+                    var el = field.render().el;
                     if ($.webshims) {
-                        $el = $container.appendPolyfill(el);
+                        $container.appendPolyfill(el);
                     } else {
-                        $el = $container.append(el);
+                        $container.append(el);
                     }
 
                     // Update editor Attrs
@@ -133,11 +134,11 @@ require(["jquery", "underscore", "backbone", "backbone-forms"],function ($, _, B
 
                 _.each(self.fieldsets, function (fieldset) {
 
-                    var $el, el = fieldset.render().el;
+                    var el = fieldset.render().el;
                     if ($.webshims) {
-                        $el = $container.appendPolyfill(el);
+                        $container.appendPolyfill(el);
                     } else {
-                        $el = $container.append(el);
+                        $container.append(el);
                     }
 
                     // Update editor Attrs
@@ -189,18 +190,25 @@ require(["jquery", "underscore", "backbone", "backbone-forms"],function ($, _, B
     };
     $.fn.tbform.Constructor = Tornado.BackboneForm;
 
-    // Facile elements with backbone-forms
-    $('[data-model][data-require]').each(function () {
+    return Tornado;
+});
+
+// Facile elements with tornado-backbone-form
+$( document ).ready(function() {
+    $('[data-form][data-require]').each(function () {
         var $form = $(this);
 
-        require($(this).data('require').split(" "), function () {
-            $form.tbform($form.data())
+        require(["tornado/form"], function () {
+            require($form.data('require').split(" "), function () {
+                $form.tbform($form.data());
+            });
         });
     });
-    $('[data-model]:not([data-require])').each(function () {
+    $('[data-form]:not([data-require])').each(function () {
         var $form = $(this);
-        $form.tbform($form.data());
-    });
 
-    return Tornado;
-}).call(window);
+        require(["tornado/form"], function () {
+            $form.tbform($form.data());
+        });
+    });
+});

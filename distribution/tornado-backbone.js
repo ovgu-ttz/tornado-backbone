@@ -6,9 +6,8 @@
  * Core Lib
  */
 
-require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
-    var self = this.Tornado || {};
-    var Tornado = this.Tornado = self;
+define("tornado", ["jquery", "underscore", "backbone"],function ($, _, Backbone) {
+    var Tornado = {};
 
     /**
      * Operator defined by restless
@@ -101,6 +100,9 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
         is_datetime: function (attribute) {
             if (this.schema.hasOwnProperty(attribute)) {
                 if (this.schema[attribute].type == "DateTime") {
+                    return true;
+                }
+                if (this.schema[attribute].type == "Date") {
                     return true;
                 }
                 if (this.schema[attribute].type == "Text" && this.schema[attribute].dataType == "datetime") {
@@ -376,7 +378,7 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
     });
 
     return Tornado;
-}).call(window);
+});
 
 /**
  * User: Martin Martimeo
@@ -386,10 +388,7 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
  * Add filtered collection in html
  */
 
-require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
-    var self = this.Tornado || {};
-    var Tornado = this.Tornado = self;
-
+define("tornado/collection", ["jquery", "underscore", "backbone", "tornado"], function ($, _, Backbone, Tornado) {
     Tornado.BackboneCollection = Backbone.View.extend({
 
         events: {
@@ -401,7 +400,11 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
             // Set collection
             if (this.options.collection) {
                 if (_.isString(this.options.collection)) {
-                    this.collection = this.options.collection = new window[this.options.collection]();
+                    var constructor = window[this.options.collection];
+                    if (!constructor) {
+                        throw "Could not find constructor: " + this.options.collection;
+                    }
+                    this.collection = this.options.collection = new constructor();
                 } else {
                     this.collection = this.options.collection;
                 }
@@ -429,7 +432,6 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
 
         navigate: function (event) {
             var $target = $(event.currentTarget),
-                self = this,
                 next = parseInt($target.text());
 
             $target.closest('footer').find(".btn-page-active").removeClass('btn-page-active');
@@ -456,6 +458,7 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
                 collection = this.collection;
 
             options = _.extend(this.options, options || {});
+            this.$el.empty();
 
             if (collection.length > 0 || options.reset) {
                 self.renderElements(options);
@@ -478,7 +481,10 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
             return self;
         },
 
-        renderElements: function (options) {
+        /**
+         * render all elements
+         */
+        renderElements: function (/* options */) {
             var self = this,
                 collection = this.collection;
 
@@ -544,9 +550,8 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
          * Renders the pagination layer
          *
          * Inspired by https://gist.github.com/io41/838460
-         * @param options
          */
-        renderFooter: function (options) {
+        renderFooter: function (/* options */) {
             var self = this,
                 collection = this.collection;
 
@@ -556,24 +561,27 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
                 total_pages: collection.total_pages || 0
             };
 
-            var $footer = $(self.constructor.footerTemplate(info));
-
-            if (info.page < 2) {
-                $footer.find(".btn-fast-backward").addClass("disabled");
-                $footer.find(".btn-step-backward").addClass("disabled");
-            } else if (info.page < 3) {
-                $footer.find(".btn-fast-backward").addClass("disabled");
-            }
-
-            if (info.page >= info.total_pages) {
-                $footer.find(".btn-fast-forward").addClass("disabled");
-                $footer.find(".btn-step-forward").addClass("disabled");
-            } else if (info.page > info.total_pages) {
-                $footer.find(".btn-fast-forward").addClass("disabled");
-            }
-
             self.$el.find("footer").remove();
-            self.$el.append($footer);
+
+            if (info.total_pages > 1 || info.page != 1 || collection.show_footer == 'always') {
+                var $footer = $(self.constructor.footerTemplate(info));
+
+                if (info.page < 2) {
+                    $footer.find(".btn-fast-backward").addClass("disabled");
+                    $footer.find(".btn-step-backward").addClass("disabled");
+                } else if (info.page < 3) {
+                    $footer.find(".btn-fast-backward").addClass("disabled");
+                }
+
+                if (info.page >= info.total_pages) {
+                    $footer.find(".btn-fast-forward").addClass("disabled");
+                    $footer.find(".btn-step-forward").addClass("disabled");
+                } else if (info.page > info.total_pages) {
+                    $footer.find(".btn-fast-forward").addClass("disabled");
+                }
+
+                self.$el.append($footer);
+            }
         }
 
     }, {
@@ -630,22 +638,28 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
     };
     $.fn.tbcollection.Constructor = Tornado.BackboneCollection;
 
-    // Facile elements with backbone-forms
-    $('[data-collection][data-require]').each(function () {
-        var $view = $(this);
+    return Tornado;
+});
 
-        require($(this).data('require').split(" "), function () {
-            $view.tbcollection($view.data())
+// Facile elements with tornado-backbone-collection
+$( document ).ready(function() {
+    $('[data-collection][data-require]').each(function () {
+        var $collection = $(this);
+
+        require(["tornado/collection"], function () {
+            require($collection.data('require').split(" "), function () {
+                $collection.tbcollection($collection.data());
+            });
         });
     });
     $('[data-collection]:not([data-require])').each(function () {
-        var $view = $(this);
-        $view.tbcollection($view.data());
+        var $collection = $(this);
+
+        require(["tornado/form"], function () {
+            $collection.tbcollection($collection.data());
+        });
     });
-
-    return Tornado;
-}).call(window);
-
+});
 /**
  * User: Martin Martimeo
  * Date: 13.08.13
@@ -654,10 +668,7 @@ require(["jquery", "underscore", "backbone"],function ($, _, Backbone) {
  * Extension to backbone-forms
  */
 
-require(["jquery", "underscore", "backbone", "backbone-forms"],function ($, _, Backbone) {
-    var self = this.Tornado || {};
-    var Tornado = this.Tornado = self;
-
+define("tornado/form", ["jquery", "underscore", "backbone", "tornado", "backbone-forms"], function ($, _, Backbone, Tornado) {
     Tornado.BackboneForm = Backbone.View.extend({
 
         initialize: function () {
@@ -665,7 +676,11 @@ require(["jquery", "underscore", "backbone", "backbone-forms"],function ($, _, B
             // Set Model
             if (this.options.model) {
                 if (_.isString(this.options.model)) {
-                    this.model = this.options.model = new window[this.options.model]();
+                    var constructor = window[this.options.model];
+                    if (!constructor) {
+                        throw "Could not find constructor: " + this.options.model;
+                    }
+                    this.model = this.options.model = new constructor();
                 } else {
                     this.model = this.options.model;
                 }
@@ -713,11 +728,11 @@ require(["jquery", "underscore", "backbone", "backbone-forms"],function ($, _, B
                 _.each(keys, function (key) {
                     var field = fields[key];
 
-                    var $el, el = field.editor.render().el;
+                    var el = field.editor.render().el;
                     if ($.webshims) {
-                        $el = $container.appendPolyfill(el);
+                        $container.appendPolyfill(el);
                     } else {
-                        $el = $container.append(el);
+                        $container.append(el);
                     }
                 });
 
@@ -750,11 +765,11 @@ require(["jquery", "underscore", "backbone", "backbone-forms"],function ($, _, B
                     field.schema = field.schema || {};
                     field.schema = _.extend(field.schema, $container.data("schema"));
 
-                    var $el, el = field.render().el;
+                    var el = field.render().el;
                     if ($.webshims) {
-                        $el = $container.appendPolyfill(el);
+                        $container.appendPolyfill(el);
                     } else {
-                        $el = $container.append(el);
+                        $container.append(el);
                     }
 
                     // Update editor Attrs
@@ -781,11 +796,11 @@ require(["jquery", "underscore", "backbone", "backbone-forms"],function ($, _, B
 
                 _.each(self.fieldsets, function (fieldset) {
 
-                    var $el, el = fieldset.render().el;
+                    var el = fieldset.render().el;
                     if ($.webshims) {
-                        $el = $container.appendPolyfill(el);
+                        $container.appendPolyfill(el);
                     } else {
-                        $el = $container.append(el);
+                        $container.append(el);
                     }
 
                     // Update editor Attrs
@@ -837,18 +852,38 @@ require(["jquery", "underscore", "backbone", "backbone-forms"],function ($, _, B
     };
     $.fn.tbform.Constructor = Tornado.BackboneForm;
 
-    // Facile elements with backbone-forms
-    $('[data-model][data-require]').each(function () {
+    return Tornado;
+});
+
+// Facile elements with tornado-backbone-form
+$( document ).ready(function() {
+    $('[data-form][data-require]').each(function () {
         var $form = $(this);
 
-        require($(this).data('require').split(" "), function () {
-            $form.tbform($form.data())
+        require(["tornado/form"], function () {
+            require($form.data('require').split(" "), function () {
+                $form.tbform($form.data());
+            });
         });
     });
-    $('[data-model]:not([data-require])').each(function () {
+    $('[data-form]:not([data-require])').each(function () {
         var $form = $(this);
-        $form.tbform($form.data());
-    });
 
+        require(["tornado/form"], function () {
+            $form.tbform($form.data());
+        });
+    });
+});
+
+/**
+ * User: Martin Martimeo
+ * Date: 17.08.13
+ * Time: 17:32
+ *
+ * Extension to backbone_relations
+ */
+
+define("tornado/relation", ["jquery", "underscore", "backbone", "tornado", "backbone-relational"],function ($, _, Backbone, Tornado) {
+    Tornado.RelationalModel = Backbone.RelationalModel.extend(Tornado.Model);
     return Tornado;
-}).call(window);
+});

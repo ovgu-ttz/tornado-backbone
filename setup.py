@@ -10,7 +10,7 @@ from distutils.core import setup
 
 setup(
     name='Tornado-Backbone',
-    version='0.2.2',
+    version='0.2.3',
     author='Martin Martimeo',
     author_email='martin@martimeo.de',
     url='https://github.com/MartinMartimeo/tornado-backbone',

@@ -77,7 +77,7 @@ And then create a form like:
 
 Or directly use a bootstrap similiar approach:
 
-    <form data-require="/api/js/user" data-model="UserModel">
+    <form data-require="/api/js/user" data-form data-model="UserModel">
       <legend>User Form</legend>
 
       <!-- Form content will be injecked here, any existing content is preserved -->
@@ -98,7 +98,7 @@ If you have relations in your model that you want to use, it may require to load
 
 Leads to displaying a form with email and title:
 
-    <form data-require="/api/js/user_title /api/js/user" data-model="UserModel">
+    <form data-require="/api/js/user_title /api/js/user" data-form data-model="UserModel">
       <legend>User Form</legend>
 
       <div data-fields="title"></div> <!-- Select Box with Title -->
@@ -109,7 +109,7 @@ backbone-relations
 ==================
 
 Tornado Backbone exposes relations in a backbone-relations compatible way.
-If you include `relations.js` in your project all models will be based on Backbone.RelationalModel
+If you require `tornado/relation` in your project all models will be based on Backbone.RelationalModel
 
 Copyright license
 =================
