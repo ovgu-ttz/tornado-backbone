@@ -252,6 +252,12 @@ define("tornado", ["jquery", "underscore", "backbone"],function ($, _, Backbone)
     Tornado.FilteredCollection = Tornado.Collection.extend({
 
         /**
+         * Default assumption for filterBy/sortBy calls
+         */
+        sort_defaults: {'op': 'asc'},
+        filter_defaults: {'op': 'eq'},
+
+        /**
          * List of applied filters
          */
         filters: [],
@@ -277,7 +283,7 @@ define("tornado", ["jquery", "underscore", "backbone"],function ($, _, Backbone)
                 options = arguments[3];
             }
 
-            _.defaults(filter, {'op': 'eq'});
+            _.defaults(filter, collection.filter_defaults);
 
             if (options.update) {
                 collection.filters = _.reject(collection.filters, function (f) {
@@ -311,7 +317,7 @@ define("tornado", ["jquery", "underscore", "backbone"],function ($, _, Backbone)
                 options = arguments[2];
             }
 
-            _.defaults(filter, {'op': 'asc'});
+            _.defaults(filter, collection.sort_defaults);
 
             if (options.update) {
                 collection.filters = _.reject(collection.filters, function (f) {
