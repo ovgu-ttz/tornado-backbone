@@ -307,7 +307,7 @@ define("tornado", ["jquery", "underscore", "backbone"],function ($, _, Backbone)
             var collection = this;
 
             if (_.isArray(filter)) {
-                if (filter.length > 2) {
+                if (filter.length > 1) {
                     filter = {'name': filter[0], 'op': filter[1]};
                 } else {
                     filter = {'name': filter[0]};
