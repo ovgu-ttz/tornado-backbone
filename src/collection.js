@@ -14,6 +14,8 @@ define("tornado/collection", ["jquery", "underscore", "backbone", "tornado"], fu
         },
 
         initialize: function () {
+            this.options = this.options || {};
+            this.options.collection = this.options.collection || this.collection;
 
             // Set collection
             if (this.options.collection) {

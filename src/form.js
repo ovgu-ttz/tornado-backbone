@@ -10,6 +10,8 @@ define("tornado/form", ["jquery", "underscore", "backbone", "tornado", "backbone
     Tornado.BackboneForm = Backbone.View.extend({
 
         initialize: function () {
+            this.options = this.options || {};
+            this.options.model = this.options.model || this.model;
 
             // Set Model
             if (this.options.model) {
