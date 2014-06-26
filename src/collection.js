@@ -263,18 +263,16 @@ define("tornado/collection", ["jquery", "underscore", "backbone", "tornado"], fu
 
 // Facile elements with tornado-backbone-collection
 $( document ).ready(function() {
-    $('[data-collection][data-require]').each(function () {
+    $('[data-collection][data-require]:not([data-wait_for_click])').each(function () {
         var $collection = $(this);
-
         require(["tornado/collection"], function () {
             require($collection.data('require').split(" "), function () {
                 $collection.tbcollection($collection.data());
             });
         });
     });
-    $('[data-collection]:not([data-require])').each(function () {
+    $('[data-collection]:not([data-require]):not([data-wait_for_click])').each(function () {
         var $collection = $(this);
-
         require(["tornado/form"], function () {
             $collection.tbcollection($collection.data());
         });
