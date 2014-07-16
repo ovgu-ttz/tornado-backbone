@@ -57,19 +57,26 @@ define("tornado/collection", ["jquery", "underscore", "backbone", "tornado"], fu
             $target.closest('footer').find(".btn-page-active").removeClass('btn-page-active');
             $target.addClass('btn-page-active').addClass('btn-page-loading');
 
+            var newpage = 0;
+
             if (!isNaN(next)) {
-                this.collection.fetch({data: {page: next}});
+                newpage = next;
             } else if ($target.is(".btn-step-forward")) {
-                this.collection.fetch({data: {page: this.collection.page + 1}});
+                newpage = this.collection.page + 1;
             } else if ($target.is(".btn-step-backward")) {
-                this.collection.fetch({data: {page: this.collection.page - 1}});
+                newpage = this.collection.page - 1;
             } else if ($target.is(".btn-fast-forward")) {
-                this.collection.fetch({data: {page: this.collection.total_pages}});
+                newpage = this.collection.total_pages;
             } else if ($target.is(".btn-fast-backward")) {
-                this.collection.fetch({data: {page: 0}});
+                newpage = 1;
             } else {
                 throw "Unexpected navigation target";
             }
+
+            // modify url if pagination is used
+            var url = Backbone.history.location.search.split("&page=")[0];
+            Backbone.history.navigate(Backbone.history.location.pathname + url + "&page=" + newpage);
+            this.collection.fetch({data: {page: newpage}});
         },
 
         render: function (options) {
